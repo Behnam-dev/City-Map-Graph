@@ -5,6 +5,11 @@ graph = Graph()
 used_names = Linked_list()
 used_names_pointer = used_names
 
+hospital_ll = Linked_list()
+hospital_ll_pointer = hospital_ll
+
+amb_ll = Linked_list()
+amb_ll_pointer = amb_ll
 
 graph.add_node("milad", "hospital")
 
@@ -66,6 +71,9 @@ def create_node() ->None:
             ask = False
         else:
             print('(!) Invalid "to_node". try again\n')
+    if type_name == "hospital":                         #Add to hospital lili
+        hospital_ll_pointer.next = Linked_list(name)
+        hospital_ll_pointer = hospital_ll_pointer.next
     print("\n(*) Node creation Complete!\n")
 
 
@@ -103,7 +111,7 @@ def role_seperator():
             print("This node is a normal point without function")
             return
         case "hospital": hospital_menu(node)
-        case "house": pass
+        case "house": house_menu(node)
 
 # ________________________________________________Hospital____________________________
 
@@ -143,6 +151,8 @@ def create_ambulance(node: Node):
     new_ambulance = Ambulance(node, node.code, code)
     new_ambulance.next = node.ambulances
     node.ambulances = new_ambulance
+    amb_ll_pointer.next = new_ambulance
+    amb_ll_pointer = amb_ll_pointer.next
     print("(*) Ambulance created!")
     return
 
@@ -174,8 +184,40 @@ def move_ambulance(node:Node):
     print(f'\n(*) Ambulance {amb_result} location :   {previous_loc} ==> {target_result}\n')
 
 
+# ________________________________________________House____________________________
 
+def house_menu(node: Node):
+    print(f"\nLogged in as {node.code} Citizen\n")
+    ask_question = True
+    while ask_question:
+        try:
+            choice = int(input('\n[1]Request Ambulance    [2]Exit\n\n\nEnter your choice: '))
+            if choice not in [1, 2, 3, 4, 5]:
+                raise ValueError()
+            match choice:
+                case 1:
+                    house_request_ambulance(node)
+                case 2:
+                    ask_question = False           
+        except ValueError:
+            print("\n(!) Enter a number from 1 and 2\n")
+            pass
     
+    
+def house_request_ambulance(node):
+    hpointer = hospital_ll.next
+    while hpointer:
+        print(hpointer.data)
+    ask = True
+    while ask:
+        hos_name = input("\nchoose your hospital: ")
+        if not house_search_hospital(hospital_ll, hos_name):#functions.py
+            print("\n(!) Choose a valid hospital")
+        else: ask = False
+    if not house_hospital_has_ambulance(graph, hos_name): #functions.py
+        print("\n(!) This hospital has no ambulances")
+        ambulences = amb_ll
+    ambulences = graph._get_node(hos_name).ambulances
     
 
 # ________________________________________________Main____________________________

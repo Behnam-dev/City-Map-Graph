@@ -66,6 +66,26 @@ def dijkstra(graph, start_code, end_code):
     return end_distance_node.distance if end_distance_node else float('inf')
 
 
+def Two_way_graph(graph: Graph) -> Graph:
+    if graph.head == None:
+        return None
+    new_graph = Graph()
+    head = graph.head
+    while head:
+        new_graph.add_node(head.code, head.type)
+        head = head.next
+    head = graph.head
+    while head:
+        edges = head.edges
+        while edges:
+            new_graph.add_edge(head.code, edges.target, edges.weight)
+            new_graph.add_edge(edges.target, head.code, edges.weight)
+            edges = edges.next
+        head = head.next
+    return new_graph
+
+
+
 def linkedlist_search(head:Linked_list, data):
     while head:
         if head.data == data:
@@ -81,3 +101,20 @@ def hospital_get_ambulance(hospital:Node, amb_code):
             return ambulances
         ambulances = ambulances.next
     return None
+
+
+def house_search_hospital(hospitals: Linked_list, name):
+    pointer = hospitals
+    while pointer:
+        if pointer.data == name:
+            return True
+        pointer = pointer.next
+    return False
+
+
+def house_hospital_has_ambulance(graph: Graph, name):
+    hospital = graph._get_node(name)
+    ambs = hospital.ambulances
+    if ambs:
+        return True
+    return False

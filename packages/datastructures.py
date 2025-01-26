@@ -100,6 +100,7 @@ class Graph:
         while edges:
             if edges.target == to_node_code:
                 return True
+            edges = edges.next
         return False
 
 
