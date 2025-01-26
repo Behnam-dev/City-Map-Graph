@@ -72,3 +72,12 @@ def linkedlist_search(head:Linked_list, data):
             return True
         head = head.next
     return False
+
+
+def hospital_get_ambulance(hospital:Node, amb_code):
+    ambulances = hospital.ambulances
+    while ambulances:
+        if ambulances.code == amb_code:
+            return ambulances
+        ambulances = ambulances.next
+    return None

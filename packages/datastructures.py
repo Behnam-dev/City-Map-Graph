@@ -23,7 +23,7 @@ class Linked_list:
 
 
 class Edge:
-    def __init__(self, target, weight):
+    def __init__(self, target, weight:int):
         self.target = target  
         self.weight = weight  
         self.next = None  
@@ -33,6 +33,10 @@ class Node:
         self.code = code  # شناسه گره
         self.type = type  # نوع گره (خانه، بیمارستان، عادی)
         self.edges = None  # لیست یال‌های خروجی (به صورت linked list)
+        if self.type == "hospital":
+            self.ambulances = None
+
+        
 
 
 class Graph:
@@ -55,21 +59,27 @@ class Graph:
         new_node.next = self.head
         self.head = new_node
 
-    def add_edge(self, from_code, to_code, weight):
+    def add_edge(self, from_code, to_code, weight:int):
         from_node = self._get_node(from_code)
         to_node = self._get_node(to_code)
 
         if not from_node or not to_node:
-            print(f"Error: Invalid node code(s): {from_code}, {to_code}")
+            print(f"\n(!) Error: Invalid node code(s): {from_code}, {to_code}\n")
             return
-        new_edge = Edge(to_code, weight)
-        if not from_node.edges:
-            from_node.edges = new_edge
+        dup_res = self.check_duplicate_edge( from_node, to_node)
+        if dup_res:
+            print(f"\n(!) Error: Attempt to create DUPLICATE edge: {from_code}, {to_code}\n")
+            return
         else:
-            current = from_node.edges
-            while current.next:
-                current = current.next
-            current.next = new_edge
+            new_edge = Edge(to_code, weight)
+            if not from_node.edges:
+                from_node.edges = new_edge
+            else:
+                current = from_node.edges
+                while current.next:
+                    current = current.next
+                current.next = new_edge
+            print("\n(*) Edge created Successfully*\n")
 
     def display_graph(self):
         current = self.head
@@ -84,9 +94,21 @@ class Graph:
             print()
             current = current.next
 
+    def check_duplicate_edge(self, from_node:Node, to_node:Node):
+        to_node_code = to_node.code
+        edges = from_node.edges
+        while edges:
+            if edges.target == to_node_code:
+                return True
+        return False
+
 
 class Ambulance:
     def __init__(self, location, hospital, code):
         self.hospital = hospital
         self.location = location
         self.code = code
+        self.next = None
+
+
+
