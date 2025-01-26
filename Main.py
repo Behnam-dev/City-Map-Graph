@@ -11,7 +11,22 @@ hospital_ll_pointer = hospital_ll
 amb_ll = Linked_list()
 amb_ll_pointer = amb_ll
 
+
 graph.add_node("milad", "hospital")
+hospital_ll_pointer.next = Linked_list("milad")
+hospital_ll_pointer = hospital_ll_pointer.next
+
+graph.add_node("ali", "house")
+graph.add_node("reza", "house")
+graph.add_node("meydoonemam", "normal_point")
+graph.add_node("meydoonhosein", "normal_point")
+
+graph.add_edge("ali", "milad", 5)
+graph.add_edge("meydoonemam", "ali", 3)
+graph.add_edge("reza", "meydoonemam", 8)
+graph.add_edge("milad", "meydoonhosein", 5)
+graph.add_edge("meydoonhosein", "reza", 5)
+
 
 
 # # Example usage
@@ -37,7 +52,7 @@ graph.add_node("milad", "hospital")
 
 
 def create_node() ->None:
-    global used_names_pointer, graph
+    global used_names_pointer, graph, hospital_ll, hospital_ll_pointer
     ask = True
     while ask:
         try:
@@ -98,6 +113,36 @@ def define_edges() ->None:
                     question = True
         except ValueError:question=True
 
+
+def Two_way_graph(graph):
+    if graph.head == None:
+        return None
+    new_graph = Graph()
+    head = graph.head
+    while head:
+        new_graph.add_node(head.code, head.type)
+        head = head.next
+    head = graph.head
+    while head:
+        edges = head.edges
+        while edges:
+            new_graph.add_edge(head.code, edges.target, edges.weight)
+            new_graph.add_edge(edges.target, head.code, edges.weight)
+            edges = edges.next
+        head = head.next
+    return new_graph
+
+
+def get_distance():
+    from_code = input("\nEnter 'from_node' : ")
+    to_code = input("Enter 'to_node' : ")
+    if graph._get_node(from_code) == None or graph._get_node(to_code) == None:
+        print("\n(!) Invalid Entry\n")
+        return 
+    shortest_distance = dijkstra(graph, from_code, to_code)
+    print(f"Shortest distance from {from_code} to {to_code}: {shortest_distance}")
+
+
 def role_seperator():
     global graph
     name = input("Enter name: ")
@@ -112,6 +157,7 @@ def role_seperator():
             return
         case "hospital": hospital_menu(node)
         case "house": house_menu(node)
+
 
 # ________________________________________________Hospital____________________________
 
@@ -141,20 +187,46 @@ def hospital_menu(node:Node):
 
 
 def create_ambulance(node: Node):
-    ambulances = node.ambulances
-    code = input('Ambulance code: ')
-    while ambulances:
-        if ambulances.code == code:
+    global amb_ll, amb_ll_pointer
+
+    code = input("Ambulance code: ")
+    current = node.ambulances
+    while current:
+        if current.code == code:
             print("(!) Ambulance already exists!")
             return
-        ambulances = ambulances.next
+        current = current.next
+
     new_ambulance = Ambulance(node, node.code, code)
-    new_ambulance.next = node.ambulances
-    node.ambulances = new_ambulance
-    amb_ll_pointer.next = new_ambulance
-    amb_ll_pointer = amb_ll_pointer.next
-    print("(*) Ambulance created!")
-    return
+    if node.ambulances is None:  
+        node.ambulances = new_ambulance
+    else:
+        current = node.ambulances
+        while current.next:
+            current = current.next
+        current.next = new_ambulance
+
+    if amb_ll_pointer is None:
+        amb_ll = new_ambulance
+        amb_ll_pointer = new_ambulance
+    else:
+        amb_ll_pointer.next = new_ambulance
+        amb_ll_pointer = new_ambulance
+
+    if graph._get_node(new_ambulance.location.code) is None:
+        print(f"Warning: Ambulance location {new_ambulance.location.code} not found in the graph.")
+    else:
+        print("(*) Ambulance created!")
+
+
+def show_all_ambulances():
+    global amb_ll
+    current = amb_ll
+    print("\nAll Ambulances:")
+    while current:
+        print(f"Ambulance Code: {current.code}, Location: {current.location.code if current.location else 'None'}")
+        current = current.next
+    print()
 
 
 def show_ambulances(node: Node):
@@ -205,19 +277,34 @@ def house_menu(node: Node):
     
     
 def house_request_ambulance(node):
+    global amb_ll
     hpointer = hospital_ll.next
     while hpointer:
         print(hpointer.data)
+        hpointer = hpointer.next
     ask = True
     while ask:
         hos_name = input("\nchoose your hospital: ")
-        if not house_search_hospital(hospital_ll, hos_name):#functions.py
+        if not house_search_hospital(hospital_ll, hos_name):  # functions.py
             print("\n(!) Choose a valid hospital")
-        else: ask = False
-    if not house_hospital_has_ambulance(graph, hos_name): #functions.py
+        else:
+            ask = False
+    if not house_hospital_has_ambulance(graph, hos_name):  # functions.py
         print("\n(!) This hospital has no ambulances")
         ambulences = amb_ll
     ambulences = graph._get_node(hos_name).ambulances
+    new_graph = Two_way_graph(graph)
+    
+    # Ensure each ambulance in the list has a valid location
+    current = ambulences
+    while current:
+        if graph._get_node(current.location.code) is None:
+            print(f"Warning: Ambulance location {current.location.code} not found in the graph.")
+        current = current.next
+    
+    closest_amb = new_graph.house_request_ambulance(node.code, ambulences)
+    print(closest_amb)
+
     
 
 # ________________________________________________Main____________________________
@@ -229,13 +316,13 @@ while runprogram:
     while ask_question:
         try:
             ask_question = False
-            choice = int(input('[1]Create Node\n[2]Define Edges\n[3]Enter Role\n[4]Show Graph\n[5]Exit program\n\nEnter your choice: '))
-            if choice not in [1, 2, 3, 4, 5]:
+            choice = int(input('[1]Create Node\n[2]Define Edges\n[3]Enter Role\n[4]Show Graph\n[5]Calculate Distance\n[6]Exit program\n\nEnter your choice: '))
+            if choice not in [1, 2, 3, 4, 5,6]:
                 raise ValueError()
         except ValueError:
             ask_question = True
     match choice:
-        case 5:
+        case 6:
             runprogram = False
         case 2:
             define_edges()
@@ -245,3 +332,5 @@ while runprogram:
             role_seperator()
         case 4:
             graph.display_graph()
+        case 5:
+            get_distance()

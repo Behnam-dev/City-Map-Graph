@@ -66,27 +66,58 @@ def dijkstra(graph, start_code, end_code):
     return end_distance_node.distance if end_distance_node else float('inf')
 
 
-def Two_way_graph(graph: Graph) -> Graph:
-    if graph.head == None:
-        return None
-    new_graph = Graph()
-    head = graph.head
-    while head:
-        new_graph.add_node(head.code, head.type)
-        head = head.next
-    head = graph.head
-    while head:
-        edges = head.edges
-        while edges:
-            new_graph.add_edge(head.code, edges.target, edges.weight)
-            new_graph.add_edge(edges.target, head.code, edges.weight)
-            edges = edges.next
-        head = head.next
-    return new_graph
+def floyd_warshall(graph):
+    """
+    Computes the shortest paths between all pairs of nodes using the Floyd-Warshall algorithm.
+
+    Args:
+        graph (DirectedGraph): The graph.
+
+    Returns:
+        LinkedListNode: A linked list of linked lists representing the shortest path distances.
+    """
+    matrix_head, nodes_head = graph.to_adjacency_matrix()
+
+    # Count the nodes
+    num_nodes = 0
+    current = nodes_head
+    while current:
+        num_nodes += 1
+        current = current.next
+
+    # Floyd-Warshall algorithm
+    k_row = matrix_head
+    for k in range(num_nodes):
+        i_row = matrix_head
+        for i in range(num_nodes):
+            j_row = matrix_head
+            for j in range(num_nodes):
+                i_col = i_row.data
+                for _ in range(j):
+                    i_col = i_col.next
+
+                ik_col = i_row.data
+                for _ in range(k):
+                    ik_col = ik_col.next
+
+                kj_col = k_row.data
+                for _ in range(j):
+                    kj_col = kj_col.next
+
+                i_col.data = min(i_col.data, ik_col.data + kj_col.data)
+
+                j_row = j_row.next
+            i_row = i_row.next
+        k_row = k_row.next
+
+    return matrix_head
 
 
 
-def linkedlist_search(head:Linked_list, data):
+
+
+
+def linkedlist_search(head, data):
     while head:
         if head.data == data:
             return True
@@ -94,7 +125,7 @@ def linkedlist_search(head:Linked_list, data):
     return False
 
 
-def hospital_get_ambulance(hospital:Node, amb_code):
+def hospital_get_ambulance(hospital, amb_code):
     ambulances = hospital.ambulances
     while ambulances:
         if ambulances.code == amb_code:
@@ -103,7 +134,7 @@ def hospital_get_ambulance(hospital:Node, amb_code):
     return None
 
 
-def house_search_hospital(hospitals: Linked_list, name):
+def house_search_hospital(hospitals, name):
     pointer = hospitals
     while pointer:
         if pointer.data == name:
@@ -112,7 +143,7 @@ def house_search_hospital(hospitals: Linked_list, name):
     return False
 
 
-def house_hospital_has_ambulance(graph: Graph, name):
+def house_hospital_has_ambulance(graph, name):
     hospital = graph._get_node(name)
     ambs = hospital.ambulances
     if ambs:
